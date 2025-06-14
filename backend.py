@@ -202,30 +202,25 @@ def get_users():
 def delete_user():
     data = request.json
     username = data.get('username', '').strip()
-    
     # Načti všechny uživatele
     users_result = sheet.values().get(
         spreadsheetId=SPREADSHEET_ID,
-        range="Uživatelé!A2:C"
+        range="Uživatelé!A2:E"
     ).execute()
     users = users_result.get('values', [])
-    
     # Najdi index uživatele
     user_index = None
     for i, row in enumerate(users):
         if row and row[0] == username:
             user_index = i + 2  # +2 protože indexujeme od 2 (záhlaví + 1-indexování)
             break
-    
     if user_index is None:
         return jsonify({'success': False, 'error': 'Uživatel nenalezen'}), 404
-    
-    # Smaž řádek
+    # Smaž celý řádek (A až E)
     result = sheet.values().clear(
         spreadsheetId=SPREADSHEET_ID,
-        range=f"Uživatelé!A{user_index}:C{user_index}"
+        range=f"Uživatelé!A{user_index}:E{user_index}"
     ).execute()
-    
     return jsonify({'success': True})
 
 @app.route('/edit_user', methods=['POST'])
