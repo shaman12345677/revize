@@ -28,7 +28,7 @@ let currentRevisionType = 'kindergarten';
 // Načtení revizí z backendu
 async function loadRevisions() {
     try {
-        const response = await fetch('http://127.0.0.1:5000/get_revisions');
+        const response = await fetch('https://revize.onrender.com/get_revisions');
         const data = await response.json();
         displayRevisions(data.revisions);
     } catch (error) {
@@ -39,7 +39,7 @@ async function loadRevisions() {
 // Načtení revizí pro školku
 async function loadRevisionsKindergarten() {
     try {
-        const response = await fetch('http://127.0.0.1:5000/get_revisions');
+        const response = await fetch('https://revize.onrender.com/get_revisions');
         const data = await response.json();
         displayRevisions(data.revisions, 'kindergarten');
     } catch (error) {
@@ -50,7 +50,7 @@ async function loadRevisionsKindergarten() {
 // Načtení revizí pro školu
 async function loadRevisionsSchool() {
     try {
-        const response = await fetch('http://127.0.0.1:5000/get_revisions_school');
+        const response = await fetch('https://revize.onrender.com/get_revisions_school');
         const data = await response.json();
         displayRevisions(data.revisions, 'school');
     } catch (error) {
