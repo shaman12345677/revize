@@ -2,7 +2,7 @@
 const SPREADSHEET_ID = '1XAFv60X9g_NaTOrJL_9gb67pFNw04cfLKJ01Zr98FC4'; // ID vašeho Google Sheetu
 const API_KEY = 'AIzaSyDk08_Bu-BFTJTRwYcZOw658FRRmIfjemo'; // Vložte sem váš Google API klíč
 const SHEET_NAME = 'List 1'; // Název listu v Google Sheets (přesně podle záložky)
-const BACKEND_URL = "https://revize.onrender.com";
+const BACKEND_URL = "http://85.207.73.90:5000";
 
 // DOM elementy
 const loginContainer = document.getElementById('login-container');
