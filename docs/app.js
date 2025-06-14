@@ -2,6 +2,7 @@
 const SPREADSHEET_ID = '1XAFv60X9g_NaTOrJL_9gb67pFNw04cfLKJ01Zr98FC4'; // ID vašeho Google Sheetu
 const API_KEY = 'AIzaSyDk08_Bu-BFTJTRwYcZOw658FRRmIfjemo'; // Vložte sem váš Google API klíč
 const SHEET_NAME = 'List 1'; // Název listu v Google Sheets (přesně podle záložky)
+const BACKEND_URL = "https://revize.onrender.com";
 
 // DOM elementy
 const loginContainer = document.getElementById('login-container');
@@ -28,7 +29,7 @@ let currentRevisionType = 'kindergarten';
 // Načtení revizí z backendu
 async function loadRevisions() {
     try {
-        const response = await fetch('https://revize.onrender.com/get_revisions');
+        const response = await fetch(`${BACKEND_URL}/get_revisions`);
         const data = await response.json();
         displayRevisions(data.revisions);
     } catch (error) {
@@ -39,7 +40,7 @@ async function loadRevisions() {
 // Načtení revizí pro školku
 async function loadRevisionsKindergarten() {
     try {
-        const response = await fetch('https://revize.onrender.com/get_revisions');
+        const response = await fetch(`${BACKEND_URL}/get_revisions`);
         const data = await response.json();
         displayRevisions(data.revisions, 'kindergarten');
     } catch (error) {
@@ -50,7 +51,7 @@ async function loadRevisionsKindergarten() {
 // Načtení revizí pro školu
 async function loadRevisionsSchool() {
     try {
-        const response = await fetch('https://revize.onrender.com/get_revisions_school');
+        const response = await fetch(`${BACKEND_URL}/get_revisions_school`);
         const data = await response.json();
         displayRevisions(data.revisions, 'school');
     } catch (error) {
@@ -216,7 +217,7 @@ async function addRevision(event) {
     const phone = document.getElementById('revision-phone').value;
 
     try {
-        const response = await fetch('http://127.0.0.1:5000/add_revision', {
+        const response = await fetch(`${BACKEND_URL}/add_revision`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -253,7 +254,7 @@ deleteDetailBtn.addEventListener('click', async () => {
     if (currentDetailIndex === null) return;
     if (!confirm('Opravdu chcete smazat tuto revizi?')) return;
     try {
-        const response = await fetch('http://127.0.0.1:5000/delete_revision', {
+        const response = await fetch(`${BACKEND_URL}/delete_revision`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -280,7 +281,7 @@ async function login(event) {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('http://127.0.0.1:5000/login', {
+        const response = await fetch(`${BACKEND_URL}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -390,11 +391,11 @@ revisionForm.addEventListener('submit', async (event) => {
         if (currentDetailIndex === null) {
             // Přidání
             if (currentRevisionType === 'school') {
-                response = await fetch('http://127.0.0.1:5000/add_revision_school', {
+                response = await fetch(`${BACKEND_URL}/add_revision_school`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
                 });
             } else {
-                response = await fetch('http://127.0.0.1:5000/add_revision', {
+                response = await fetch(`${BACKEND_URL}/add_revision`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
                 });
             }
@@ -402,11 +403,11 @@ revisionForm.addEventListener('submit', async (event) => {
             // Editace
             data.row_index = currentDetailIndex;
             if (currentRevisionType === 'school') {
-                response = await fetch('http://127.0.0.1:5000/edit_revision_school', {
+                response = await fetch(`${BACKEND_URL}/edit_revision_school`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
                 });
             } else {
-                response = await fetch('http://127.0.0.1:5000/edit_revision', {
+                response = await fetch(`${BACKEND_URL}/edit_revision`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
                 });
             }
@@ -454,11 +455,11 @@ detailForm.addEventListener('submit', async (event) => {
     try {
         let response;
         if (currentRevisionType === 'school') {
-            response = await fetch('http://127.0.0.1:5000/edit_revision_school', {
+            response = await fetch(`${BACKEND_URL}/edit_revision_school`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
             });
         } else {
-            response = await fetch('http://127.0.0.1:5000/edit_revision', {
+            response = await fetch(`${BACKEND_URL}/edit_revision`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
             });
         }
@@ -497,7 +498,7 @@ window.addEventListener('load', () => {
 // Správa uživatelů
 async function loadUsers() {
     try {
-        const response = await fetch('http://127.0.0.1:5000/get_users');
+        const response = await fetch(`${BACKEND_URL}/get_users`);
         const data = await response.json();
         displayUsers(data.users);
     } catch (error) {
@@ -539,7 +540,7 @@ function displayUsers(users) {
             const username = e.target.dataset.username;
             if (confirm(`Opravdu chcete smazat uživatele ${username}?`)) {
                 try {
-                    const response = await fetch('http://127.0.0.1:5000/delete_user', {
+                    const response = await fetch(`${BACKEND_URL}/delete_user`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -590,7 +591,7 @@ editUserForm.addEventListener('submit', async (event) => {
     const role = document.getElementById('edit-role').value;
     const userType = document.getElementById('edit-type').value;
     try {
-        const response = await fetch('http://127.0.0.1:5000/edit_user', {
+        const response = await fetch(`${BACKEND_URL}/edit_user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -664,7 +665,7 @@ userForm.addEventListener('submit', async (event) => {
     const role = document.getElementById('new-role').value;
     const userType = document.getElementById('new-type').value;
     try {
-        const response = await fetch('http://127.0.0.1:5000/add_user', {
+        const response = await fetch(`${BACKEND_URL}/add_user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
