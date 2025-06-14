@@ -311,8 +311,13 @@ async function loginUser(username, password) {
         
         if (data.success) {
             console.log('Přihlášení úspěšné');
+            localStorage.setItem('role', data.role || 'user');
+            localStorage.setItem('user_type', data.user_type || '');
+            localStorage.setItem('isLoggedIn', 'true');
             loginContainer.classList.add('hidden');
             appContainer.classList.remove('hidden');
+            toggleTabsByRole();
+            showDefaultTabByRole();
             loadRevisions();
         } else {
             console.error('Chyba přihlášení:', data.error);
