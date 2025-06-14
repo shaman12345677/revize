@@ -3,6 +3,7 @@ from flask_cors import CORS
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import bcrypt
+import os
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -349,4 +350,5 @@ def delete_revision_school():
     return jsonify({'success': True, 'result': result})
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True) 
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True) 
