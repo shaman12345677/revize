@@ -4,6 +4,9 @@ const API_KEY = 'AIzaSyDk08_Bu-BFTJTRwYcZOw658FRRmIfjemo'; // Vložte sem váš 
 const SHEET_NAME = 'List 1'; // Název listu v Google Sheets (přesně podle záložky)
 const BACKEND_URL = "http://85.207.73.90:5000";
 
+// Přidání logování pro diagnostiku
+console.log('Backend URL:', BACKEND_URL);
+
 // DOM elementy
 const loginContainer = document.getElementById('login-container');
 const appContainer = document.getElementById('app-container');
@@ -19,6 +22,15 @@ const detailModal = document.getElementById('detail-modal');
 const detailForm = document.getElementById('detail-form');
 const cancelDetailBtn = document.getElementById('cancel-detail');
 
+// Přidání logování pro DOM elementy
+console.log('DOM elementy:', {
+    loginContainer: !!loginContainer,
+    appContainer: !!appContainer,
+    loginForm: !!loginForm,
+    revisionsTable: !!revisionsTable,
+    revisionsBody: !!revisionsBody
+});
+
 let currentRowCount = 0;
 let currentDetailIndex = null;
 let lastLoadedRevisions = [];
@@ -29,11 +41,15 @@ let currentRevisionType = 'kindergarten';
 // Načtení revizí z backendu
 async function loadRevisions() {
     try {
+        console.log('Načítám revize z:', `${BACKEND_URL}/get_revisions`);
         const response = await fetch(`${BACKEND_URL}/get_revisions`);
+        console.log('Odpověď serveru:', response.status, response.statusText);
         const data = await response.json();
+        console.log('Načtená data:', data);
         displayRevisions(data.revisions);
     } catch (error) {
         console.error('Chyba při načítání revizí:', error);
+        alert('Chyba při načítání revizí: ' + error.message);
     }
 }
 
@@ -274,39 +290,48 @@ deleteDetailBtn.addEventListener('click', async () => {
     }
 });
 
-// Přihlášení
-async function login(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
+// Přihlášení uživatele
+async function loginUser(username, password) {
     try {
+        console.log('Pokus o přihlášení uživatele:', username);
+        console.log('URL pro přihlášení:', `${BACKEND_URL}/login`);
+        
         const response = await fetch(`${BACKEND_URL}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({ username, password })
         });
+        
+        console.log('Odpověď serveru:', response.status, response.statusText);
         const data = await response.json();
+        console.log('Data odpovědi:', data);
+        
         if (data.success) {
+            console.log('Přihlášení úspěšné');
             loginContainer.classList.add('hidden');
             appContainer.classList.remove('hidden');
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('username', username);
-            localStorage.setItem('role', data.role || 'user');
-            localStorage.setItem('user_type', data.user_type || 'školka');
-            modal.classList.add('hidden');
-            toggleTabsByRole();
-            showDefaultTabByRole();
+            loadRevisions();
         } else {
-            alert(data.error || 'Nesprávné jméno nebo heslo!');
+            console.error('Chyba přihlášení:', data.error);
+            alert(data.error || 'Chyba při přihlašování');
         }
     } catch (error) {
         console.error('Chyba při přihlašování:', error);
-        alert('Chyba při přihlašování! Zkontrolujte, zda běží backend server.');
+        alert('Chyba při přihlašování: ' + error.message);
     }
 }
+
+// Event listener pro přihlašovací formulář
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    console.log('Odesílám přihlašovací formulář:', { username });
+    await loginUser(username, password);
+});
 
 function toggleTabsByRole() {
     const role = localStorage.getItem('role');
@@ -360,7 +385,6 @@ function logout() {
 }
 
 // Event listeners
-loginForm.addEventListener('submit', login);
 logoutBtn.addEventListener('click', logout);
 addRevisionBtn.addEventListener('click', () => {
     if (localStorage.getItem('isLoggedIn') === 'true') {
