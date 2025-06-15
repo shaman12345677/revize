@@ -225,7 +225,7 @@ async function addRevision(event) {
     const lastDate = document.getElementById('revision-last-date').value;
     const nextDate = document.getElementById('revision-next-date').value;
     const intervalMonths = document.getElementById('revision-interval').value;
-    const daysToNext = document.getElementById('revision-days-to-next').value;
+    // const daysToNext = document.getElementById('revision-days-to-next').value; // NEPOSÍLAT
     const status = document.getElementById('revision-status').value;
     const company = document.getElementById('revision-company').value;
     const person = document.getElementById('revision-person').value;
@@ -243,7 +243,7 @@ async function addRevision(event) {
                 lastDate,
                 nextDate,
                 intervalMonths,
-                daysToNext,
+                // daysToNext,
                 status,
                 company,
                 person,
@@ -400,64 +400,7 @@ cancelRevisionBtn.addEventListener('click', () => {
     modal.classList.add('hidden');
     revisionForm.reset();
 });
-revisionForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const title = document.getElementById('revision-title').value;
-    const lastDate = document.getElementById('revision-last-date').value;
-    const nextDate = document.getElementById('revision-next-date').value;
-    const intervalMonths = document.getElementById('revision-interval').value;
-    const daysToNext = document.getElementById('revision-days-to-next').value;
-    const status = document.getElementById('revision-status').value;
-    const company = document.getElementById('revision-company').value;
-    const person = document.getElementById('revision-person').value;
-    const email = document.getElementById('revision-email').value;
-    const phone = document.getElementById('revision-phone').value;
-    const data = {
-        title, lastDate, nextDate, intervalMonths, daysToNext, status, company, person, email, phone
-    };
-    try {
-        let response;
-        if (currentDetailIndex === null) {
-            // Přidání
-            if (currentRevisionType === 'school') {
-                response = await fetch(`${BACKEND_URL}/add_revision_school`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
-                });
-            } else {
-                response = await fetch(`${BACKEND_URL}/add_revision`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
-                });
-            }
-        } else {
-            // Editace
-            data.row_index = currentDetailIndex;
-            if (currentRevisionType === 'school') {
-                response = await fetch(`${BACKEND_URL}/edit_revision_school`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
-                });
-            } else {
-                response = await fetch(`${BACKEND_URL}/edit_revision`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
-                });
-            }
-        }
-        const respData = await response.json();
-        if (respData.success) {
-            modal.classList.add('hidden');
-            revisionForm.reset();
-            if (currentRevisionType === 'school') {
-                loadRevisionsSchool();
-            } else {
-                loadRevisionsKindergarten();
-            }
-        } else {
-            alert('Chyba při ukládání revize!');
-        }
-    } catch (error) {
-        console.error('Chyba při ukládání revize:', error);
-    }
-    currentDetailIndex = null;
-});
+revisionForm.addEventListener('submit', addRevision);
 
 cancelDetailBtn.addEventListener('click', () => {
     detailModal.classList.add('hidden');
@@ -471,7 +414,7 @@ detailForm.addEventListener('submit', async (event) => {
     const lastDate = document.getElementById('detail-last-date').value;
     const nextDate = document.getElementById('detail-next-date').value;
     const intervalMonths = document.getElementById('detail-interval').value;
-    const daysToNext = document.getElementById('detail-days-to-next').value;
+    // const daysToNext = document.getElementById('detail-days-to-next').value; // NEPOSÍLAT
     const status = document.getElementById('detail-status').value;
     const company = document.getElementById('detail-company').value;
     const person = document.getElementById('detail-person').value;
@@ -479,7 +422,7 @@ detailForm.addEventListener('submit', async (event) => {
     const phone = document.getElementById('detail-phone').value;
     const data = {
         row_index: currentDetailIndex,
-        title, lastDate, nextDate, intervalMonths, daysToNext, status, company, person, email, phone
+        title, lastDate, nextDate, intervalMonths, /* daysToNext, */ status, company, person, email, phone
     };
     try {
         let response;

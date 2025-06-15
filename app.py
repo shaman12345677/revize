@@ -5,6 +5,18 @@ from googleapiclient.discovery import build
 import bcrypt
 import os
 from dotenv import load_dotenv
+import logging
+import sys
+
+# Nastavení logování
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/output.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 # Načtení proměnných prostředí
 load_dotenv()
@@ -25,6 +37,8 @@ CORS(app, resources={
 # Bezpečnostní hlavičky
 @app.after_request
 def after_request(response):
+    logging.debug(f"Request headers: {dict(request.headers)}")
+    logging.debug(f"Response headers: {dict(response.headers)}")
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
@@ -50,26 +64,26 @@ except Exception as e:
     raise
 
 @app.route('/')
-def home():
+def index():
+    logging.info("Root endpoint called")
     return jsonify({
-        'status': 'online',
-        'message': 'Revize backend běží',
+        'status': 'ok',
+        'message': 'Backend is running',
         'endpoints': {
             'login': '/login',
+            'test': '/test',
+            'add_user': '/add_user',
             'get_revisions': '/get_revisions',
             'add_revision': '/add_revision',
-            'edit_revision': '/edit_revision',
-            'delete_revision': '/delete_revision',
-            'get_revisions_school': '/get_revisions_school',
-            'add_revision_school': '/add_revision_school',
-            'edit_revision_school': '/edit_revision_school',
-            'delete_revision_school': '/delete_revision_school',
-            'get_users': '/get_users',
-            'add_user': '/add_user',
-            'edit_user': '/edit_user',
-            'delete_user': '/delete_user'
+            'update_revision': '/update_revision',
+            'delete_revision': '/delete_revision'
         }
     })
+
+@app.route('/test', methods=['GET'])
+def test():
+    logging.info("Test endpoint called")
+    return jsonify({'status': 'ok', 'message': 'Backend is running'})
 
 @app.route('/add_revision', methods=['POST'])
 def add_revision():
@@ -79,7 +93,7 @@ def add_revision():
         data['lastDate'],
         data['nextDate'],
         data['intervalMonths'],
-        data['daysToNext'],
+        "",
         data['status'],
         data.get('company', ''),
         data.get('person', ''),
@@ -133,7 +147,7 @@ def edit_revision():
         data['lastDate'],
         data['nextDate'],
         data['intervalMonths'],
-        data['daysToNext'],
+        "",
         data['status'],
         data.get('company', ''),
         data.get('person', ''),
@@ -152,44 +166,84 @@ def edit_revision():
     ).execute()
     return jsonify({'success': True, 'result': result})
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST', 'OPTIONS'])
 def login():
-    data = request.json
-    username = data.get('username', '').strip()
-    password = data.get('password', '').strip()
-    
-    print(f"Přihlašovací pokus pro uživatele: {username}")
-    
-    users_result = sheet.values().get(
-        spreadsheetId=SPREADSHEET_ID,
-        range="Uživatelé!A2:E"
-    ).execute()
-    users = users_result.get('values', [])
-    
-    print(f"Načteno uživatelů: {len(users)}")
-    
-    for row in users:
-        if len(row) >= 3 and row[0].strip() == username:
-            print(f"Nalezen uživatel: {username}")
-            stored_salt = str(row[1]).strip()
-            stored_hash = str(row[2]).strip()
-            try:
-                password_bytes = password.encode('utf-8')
-                salt_bytes = stored_salt.encode('utf-8')
-                new_hash = bcrypt.hashpw(password_bytes, salt_bytes)
-                new_hash_str = new_hash.decode('utf-8')
-                if stored_hash == new_hash_str:
-                    print("Heslo je správné!")
-                    role = row[3].strip() if len(row) > 3 and row[3].strip() else ('admin' if username == 'samekt' else 'user')
-                    user_type = row[4].strip() if len(row) > 4 and row[4].strip() else 'školka'
-                    return jsonify({'success': True, 'role': role, 'user_type': user_type})
-                else:
-                    print("Nesprávné heslo!")
-            except Exception as e:
-                print(f"Chyba při ověřování hesla: {str(e)}")
-            break
-    print("Přihlášení selhalo")
-    return jsonify({'success': False, 'error': 'Nesprávné jméno nebo heslo.'}), 401
+    if request.method == 'OPTIONS':
+        logging.debug("OPTIONS request received")
+        return '', 200
+        
+    try:
+        logging.info("Login attempt received")
+        logging.debug(f"Request headers: {dict(request.headers)}")
+        
+        if not request.is_json:
+            logging.error("Request is not JSON")
+            return jsonify({'error': 'Request must be JSON'}), 400
+            
+        data = request.get_json()
+        logging.debug(f"Login data: {data}")
+        
+        if not data or 'username' not in data or 'password' not in data:
+            logging.error("Missing username or password in request")
+            return jsonify({'error': 'Chybí uživatelské jméno nebo heslo'}), 400
+
+        username = data['username']
+        password = data['password']
+        
+        logging.info(f"Attempting login for user: {username}")
+
+        # Inicializace Google Sheets API
+        try:
+            credentials = service_account.Credentials.from_service_account_file(
+                'service_account.json',
+                scopes=['https://www.googleapis.com/auth/spreadsheets']
+            )
+            service = build('sheets', 'v4', credentials=credentials)
+            logging.debug("Google Sheets API initialized successfully")
+        except Exception as e:
+            logging.error(f"Failed to initialize Google Sheets API: {str(e)}")
+            return jsonify({'error': 'Chyba při připojení k Google Sheets'}), 500
+        
+        # Načtení uživatelů
+        try:
+            result = service.spreadsheets().values().get(
+                spreadsheetId=os.getenv('SPREADSHEET_ID'),
+                range='Uživatelé!A2:E'
+            ).execute()
+            
+            users = result.get('values', [])
+            logging.info(f"Found {len(users)} users in sheet")
+        except Exception as e:
+            logging.error(f"Failed to fetch users from sheet: {str(e)}")
+            return jsonify({'error': 'Chyba při načítání uživatelů'}), 500
+        
+        # Kontrola přihlašovacích údajů
+        for user in users:
+            if len(user) >= 3 and user[0] == username:
+                stored_salt = user[1]
+                stored_hash = user[2]
+                try:
+                    password_bytes = password.encode('utf-8')
+                    salt_bytes = stored_salt.encode('utf-8')
+                    new_hash = bcrypt.hashpw(password_bytes, salt_bytes).decode()
+                    if stored_hash == new_hash:
+                        logging.info(f"Successful login for user: {username}")
+                        role = user[3] if len(user) > 3 and user[3].strip() else ('admin' if username == 'samekt' else 'user')
+                        user_type = user[4] if len(user) > 4 and user[4].strip() else 'školka'
+                        return jsonify({'success': True, 'username': username, 'role': role, 'user_type': user_type})
+                    else:
+                        logging.warning(f"Invalid password for user: {username}")
+                        return jsonify({'error': 'Nesprávné heslo'}), 401
+                except Exception as e:
+                    logging.error(f"Error checking password: {str(e)}")
+                    return jsonify({'error': 'Chyba při ověřování hesla'}), 500
+        
+        logging.warning(f"User not found: {username}")
+        return jsonify({'error': 'Uživatel nenalezen'}), 401
+        
+    except Exception as e:
+        logging.error(f"Login error: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Chyba při přihlašování: {str(e)}'}), 500
 
 @app.route('/add_user', methods=['POST'])
 def add_user():
@@ -314,7 +368,7 @@ def add_revision_school():
         data['lastDate'],
         data['nextDate'],
         data['intervalMonths'],
-        data['daysToNext'],
+        "",
         data['status'],
         data.get('company', ''),
         data.get('person', ''),
@@ -339,7 +393,7 @@ def edit_revision_school():
         data['lastDate'],
         data['nextDate'],
         data['intervalMonths'],
-        data['daysToNext'],
+        "",
         data['status'],
         data.get('company', ''),
         data.get('person', ''),
