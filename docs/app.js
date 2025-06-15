@@ -11,8 +11,8 @@ console.log('Backend URL:', BACKEND_URL);
 const loginContainer = document.getElementById('login-container');
 const appContainer = document.getElementById('app-container');
 const loginForm = document.getElementById('login-form');
-const revisionsTable = document.getElementById('revisions-table');
-const revisionsBody = document.getElementById('revisions-body');
+// const revisionsTable = document.getElementById('revisions-table');
+// const revisionsBody = document.getElementById('revisions-body');
 const addRevisionBtn = document.getElementById('add-revision');
 const logoutBtn = document.getElementById('logout');
 const modal = document.getElementById('modal');
@@ -27,8 +27,8 @@ console.log('DOM elementy:', {
     loginContainer: !!loginContainer,
     appContainer: !!appContainer,
     loginForm: !!loginForm,
-    revisionsTable: !!revisionsTable,
-    revisionsBody: !!revisionsBody
+    // revisionsTable: !!revisionsTable,
+    // revisionsBody: !!revisionsBody
 });
 
 let currentRowCount = 0;
