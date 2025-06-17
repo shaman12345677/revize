@@ -4,18 +4,6 @@ const API_KEY = 'AIzaSyDk08_Bu-BFTJTRwYcZOw658FRRmIfjemo'; // Vložte sem váš 
 const SHEET_NAME = 'List 1'; // Název listu v Google Sheets (přesně podle záložky)
 const BACKEND_URL = "https://api.zsmik.cz";
 
-// Funkce pro fetch s ignorováním SSL chyb (dočasné řešení)
-async function fetchWithSSLIgnore(url, options = {}) {
-    try {
-        return await fetch(url, options);
-    } catch (error) {
-        console.warn('SSL chyba, zkouším alternativní přístup:', error);
-        // Fallback na HTTP (pokud je dostupné)
-        const httpUrl = url.replace('https://', 'http://');
-        return await fetch(httpUrl, options);
-    }
-}
-
 // Přidání logování pro diagnostiku
 console.log('Backend URL:', BACKEND_URL);
 
@@ -54,7 +42,7 @@ let currentRevisionType = 'kindergarten';
 async function loadRevisions() {
     try {
         console.log('Načítám revize z:', `${BACKEND_URL}/get_revisions`);
-        const response = await fetchWithSSLIgnore(`${BACKEND_URL}/get_revisions`);
+        const response = await fetch(`${BACKEND_URL}/get_revisions`);
         console.log('Odpověď serveru:', response.status, response.statusText);
         const data = await response.json();
         console.log('Načtená data:', data);
@@ -68,7 +56,7 @@ async function loadRevisions() {
 // Načtení revizí pro školku
 async function loadRevisionsKindergarten() {
     try {
-        const response = await fetchWithSSLIgnore(`${BACKEND_URL}/get_revisions`);
+        const response = await fetch(`${BACKEND_URL}/get_revisions`);
         const data = await response.json();
         displayRevisions(data.revisions, 'kindergarten');
     } catch (error) {
@@ -79,7 +67,7 @@ async function loadRevisionsKindergarten() {
 // Načtení revizí pro školu
 async function loadRevisionsSchool() {
     try {
-        const response = await fetchWithSSLIgnore(`${BACKEND_URL}/get_revisions_school`);
+        const response = await fetch(`${BACKEND_URL}/get_revisions_school`);
         const data = await response.json();
         displayRevisions(data.revisions, 'school');
     } catch (error) {
@@ -245,7 +233,7 @@ async function addRevision(event) {
     const phone = document.getElementById('revision-phone').value;
 
     try {
-        const response = await fetchWithSSLIgnore(`${BACKEND_URL}/add_revision`, {
+        const response = await fetch(`${BACKEND_URL}/add_revision`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -282,7 +270,7 @@ deleteDetailBtn.addEventListener('click', async () => {
     if (currentDetailIndex === null) return;
     if (!confirm('Opravdu chcete smazat tuto revizi?')) return;
     try {
-        const response = await fetchWithSSLIgnore(`${BACKEND_URL}/delete_revision`, {
+        const response = await fetch(`${BACKEND_URL}/delete_revision`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -308,7 +296,7 @@ async function loginUser(username, password) {
         console.log('Pokus o přihlášení uživatele:', username);
         console.log('URL pro přihlášení:', `${BACKEND_URL}/login`);
         
-        const response = await fetchWithSSLIgnore(`${BACKEND_URL}/login`, {
+        const response = await fetch(`${BACKEND_URL}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -439,11 +427,11 @@ detailForm.addEventListener('submit', async (event) => {
     try {
         let response;
         if (currentRevisionType === 'school') {
-            response = await fetchWithSSLIgnore(`${BACKEND_URL}/edit_revision_school`, {
+            response = await fetch(`${BACKEND_URL}/edit_revision_school`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
             });
         } else {
-            response = await fetchWithSSLIgnore(`${BACKEND_URL}/edit_revision`, {
+            response = await fetch(`${BACKEND_URL}/edit_revision`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
             });
         }
@@ -482,7 +470,7 @@ window.addEventListener('load', () => {
 // Správa uživatelů
 async function loadUsers() {
     try {
-        const response = await fetchWithSSLIgnore(`${BACKEND_URL}/get_users`);
+        const response = await fetch(`${BACKEND_URL}/get_users`);
         const data = await response.json();
         displayUsers(data.users);
     } catch (error) {
@@ -524,7 +512,7 @@ function displayUsers(users) {
             const username = e.target.dataset.username;
             if (confirm(`Opravdu chcete smazat uživatele ${username}?`)) {
                 try {
-                    const response = await fetchWithSSLIgnore(`${BACKEND_URL}/delete_user`, {
+                    const response = await fetch(`${BACKEND_URL}/delete_user`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -575,7 +563,7 @@ editUserForm.addEventListener('submit', async (event) => {
     const role = document.getElementById('edit-role').value;
     const userType = document.getElementById('edit-type').value;
     try {
-        const response = await fetchWithSSLIgnore(`${BACKEND_URL}/edit_user`, {
+        const response = await fetch(`${BACKEND_URL}/edit_user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -649,7 +637,7 @@ userForm.addEventListener('submit', async (event) => {
     const role = document.getElementById('new-role').value;
     const userType = document.getElementById('new-type').value;
     try {
-        const response = await fetchWithSSLIgnore(`${BACKEND_URL}/add_user`, {
+        const response = await fetch(`${BACKEND_URL}/add_user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
