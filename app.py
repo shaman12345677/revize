@@ -93,19 +93,17 @@ def add_revision():
         data['lastDate'],
         data['nextDate'],
         data['intervalMonths'],
-        "",
         data['status'],
         data.get('company', ''),
         data.get('person', ''),
         data.get('email', ''),
         data.get('phone', '')
     ]]
-    body = {'values': values}
     result = sheet.values().append(
         spreadsheetId=SPREADSHEET_ID,
-        range=f"{SHEET_NAME}!A:J",
+        range=f"{SHEET_NAME}!A:D,F:J",
         valueInputOption="RAW",
-        body=body
+        body={'values': values}
     ).execute()
     return jsonify({'success': True, 'result': result})
 
@@ -142,29 +140,21 @@ def delete_revision():
 def edit_revision():
     data = request.json
     row_index = data['row_index']
-    values = [[
-        data['title'],
-        data['lastDate'],
-        data['nextDate'],
-        data['intervalMonths'],
-        "",
-        data['status'],
-        data.get('company', ''),
-        data.get('person', ''),
-        data.get('email', ''),
-        data.get('phone', '')
-    ]]
-    body = {
-        'range': f"{SHEET_NAME}!A{row_index+2}:J{row_index+2}",
-        'values': values
-    }
-    result = sheet.values().update(
+    # Zápis A-D
+    sheet.values().update(
         spreadsheetId=SPREADSHEET_ID,
-        range=f"{SHEET_NAME}!A{row_index+2}:J{row_index+2}",
+        range=f"{SHEET_NAME}!A{row_index+2}:D{row_index+2}",
         valueInputOption="RAW",
-        body=body
+        body={'values': [[data['title'], data['lastDate'], data['nextDate'], data['intervalMonths']]]}
     ).execute()
-    return jsonify({'success': True, 'result': result})
+    # Zápis F-J
+    sheet.values().update(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"{SHEET_NAME}!F{row_index+2}:J{row_index+2}",
+        valueInputOption="RAW",
+        body={'values': [[data['status'], data.get('company', ''), data.get('person', ''), data.get('email', ''), data.get('phone', '')]]}
+    ).execute()
+    return jsonify({'success': True})
 
 @app.route('/login', methods=['POST', 'OPTIONS'])
 def login():
@@ -368,19 +358,17 @@ def add_revision_school():
         data['lastDate'],
         data['nextDate'],
         data['intervalMonths'],
-        "",
         data['status'],
         data.get('company', ''),
         data.get('person', ''),
         data.get('email', ''),
         data.get('phone', '')
     ]]
-    body = {'values': values}
     result = sheet.values().append(
         spreadsheetId=SPREADSHEET_ID,
-        range="List 2!A:J",
+        range="List 2!A:D,F:J",
         valueInputOption="RAW",
-        body=body
+        body={'values': values}
     ).execute()
     return jsonify({'success': True, 'result': result})
 
@@ -388,29 +376,21 @@ def add_revision_school():
 def edit_revision_school():
     data = request.json
     row_index = data['row_index']
-    values = [[
-        data['title'],
-        data['lastDate'],
-        data['nextDate'],
-        data['intervalMonths'],
-        "",
-        data['status'],
-        data.get('company', ''),
-        data.get('person', ''),
-        data.get('email', ''),
-        data.get('phone', '')
-    ]]
-    body = {
-        'range': f"List 2!A{row_index+2}:J{row_index+2}",
-        'values': values
-    }
-    result = sheet.values().update(
+    # Zápis A-D
+    sheet.values().update(
         spreadsheetId=SPREADSHEET_ID,
-        range=f"List 2!A{row_index+2}:J{row_index+2}",
+        range=f"List 2!A{row_index+2}:D{row_index+2}",
         valueInputOption="RAW",
-        body=body
+        body={'values': [[data['title'], data['lastDate'], data['nextDate'], data['intervalMonths']]]}
     ).execute()
-    return jsonify({'success': True, 'result': result})
+    # Zápis F-J
+    sheet.values().update(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"List 2!F{row_index+2}:J{row_index+2}",
+        valueInputOption="RAW",
+        body={'values': [[data['status'], data.get('company', ''), data.get('person', ''), data.get('email', ''), data.get('phone', '')]]}
+    ).execute()
+    return jsonify({'success': True})
 
 @app.route('/delete_revision_school', methods=['POST'])
 def delete_revision_school():
